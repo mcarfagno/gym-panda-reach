@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<robot name="target">
+  <link name="baseLink">
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+				<sphere radius="0.025"/>
+      </geometry>
+       <material name="red">
+        <color rgba="0.9 0.0 0.0 1"/>
+      </material>
+    </visual>
+
+  </link>
+</robot>

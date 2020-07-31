@@ -72,7 +72,9 @@ class PandaEnv(gym.Env):
         urdfRootPath=pybullet_data.getDataPath()
         p.setGravity(0,0,-10)
 
-        #planeUid = p.loadURDF(os.path.join(urdfRootPath,"plane.urdf"), basePosition=[0,0,-0.65])
+#         planeUid = p.loadURDF(os.path.join(urdfRootPath,"plane.urdf"), basePosition=[0,0,-0.65])
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        planeUid = p.loadURDF(os.path.join(dir_path, "floor.urdf"), basePosition=[0,0,-0.65],useFixedBase=True)
 
         rest_poses = [0, -0.215, 0, -2.57, 0.0, 2.356, math.pi/4, 0.0, 0.0, 0.0]
 #         rest_poses = [0, 0, 0, 0, 0.0, 0, 0, 0.0, 0.0, 0.0]
@@ -81,12 +83,15 @@ class PandaEnv(gym.Env):
         for i in range(len(rest_poses)):
             p.resetJointState(self.pandaUid,i, rest_poses[i])
             
-        tableUid = p.loadURDF(os.path.join(urdfRootPath, "table/table.urdf"),basePosition=[0.5,0,-0.65])
+#         tableUid = p.loadURDF(os.path.join(urdfRootPath, "table/table.urdf"),basePosition=[0.5,0,-0.65])
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        tableUid = p.loadURDF(os.path.join(dir_path, "flat_table.urdf"),basePosition=[0.5,0,-0.65/2],useFixedBase=True)
 
-        trayUid = p.loadURDF(os.path.join(urdfRootPath, "tray/traybox.urdf"),basePosition=[0.65,0,0])
+        #trayUid = p.loadURDF(os.path.join(urdfRootPath, "tray/traybox.urdf"),basePosition=[0.65,0,0])
 
-        state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),0.05]
-        self.objectUid = p.loadURDF(os.path.join(urdfRootPath, "random_urdfs/000/000.urdf"), basePosition=state_object)
+        state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.0,0.2)]
+#         self.objectUid = p.loadURDF(os.path.join(urdfRootPath, "random_urdfs/000/000.urdf"), basePosition=state_object)
+        self.objectUid = p.loadURDF(os.path.join(dir_path, "goal.urdf"), basePosition=state_object,useFixedBase=True)
         state_robot = p.getLinkState(self.pandaUid, 11)[0]
         state_fingers = (p.getJointState(self.pandaUid,9)[0], p.getJointState(self.pandaUid, 10)[0])
         self.observation = state_robot + state_fingers
