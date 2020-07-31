@@ -12,15 +12,28 @@ import random
 
 MAX_EPISODE_LEN = 20*100
 
+
+def goal_distance(goal_a, goal_b):
+    return np.linalg.norm(np.array(goal_a) - np.array(goal_b), axis=-1)
+
 class PandaEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
         self.step_counter = 0
-        p.connect(p.GUI,options='--background_color_red=0.0 --background_color_green=0.929--background_color_blue=0.549')
-        p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=90, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2])
+        p.connect(p.GUI,options='--background_color_red=0.0 --background_color_green=0.93--background_color_blue=0.54')
+        p.resetDebugVisualizerCamera(cameraDistance=1.25, cameraYaw=45, cameraPitch=-20, cameraTargetPosition=[0.55,-0.35,0.15])
         self.action_space = spaces.Box(np.array([-1]*4), np.array([1]*4))
         self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
+        
+    def compute_reward(self, achieved_goal, goal):
+        # Compute distance between goal and the achieved goal.
+        d = goal_distance(achieved_goal, goal)
+        if self.reward_type == 'sparse':
+            return -(d > self.distance_threshold).astype(np.float32)
+        else:
+            return -d
+
 
     def step(self, action):
         p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING)
@@ -45,8 +58,10 @@ class PandaEnv(gym.Env):
         state_object, _ = p.getBasePositionAndOrientation(self.objectUid)
         state_robot = p.getLinkState(self.pandaUid, 11)[0]
         state_fingers = (p.getJointState(self.pandaUid,9)[0], p.getJointState(self.pandaUid, 10)[0])
-
-
+        
+        self.reward_type = "dense"
+        self.distance_threshold = 0.05
+        #print(self.compute_reward(state_robot_, state_object_))
 
         if state_object[2]>0.45:
             reward = 1
@@ -88,6 +103,10 @@ class PandaEnv(gym.Env):
         tableUid = p.loadURDF(os.path.join(dir_path, "flat_table.urdf"),basePosition=[0.5,0,-0.65/2],useFixedBase=True)
 
         #trayUid = p.loadURDF(os.path.join(urdfRootPath, "tray/traybox.urdf"),basePosition=[0.65,0,0])
+        
+        p.addUserDebugLine([-1,0,0],[1,0,0],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
+        p.addUserDebugLine([0,-1,0],[0,1,0],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
+        p.addUserDebugLine([0,0,-1],[0,0,1],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
 
         state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.0,0.2)]
 #         self.objectUid = p.loadURDF(os.path.join(urdfRootPath, "random_urdfs/000/000.urdf"), basePosition=state_object)
@@ -102,7 +121,7 @@ class PandaEnv(gym.Env):
         view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0.7,0,0.05],
                                                             distance=.7,
                                                             yaw=90,
-                                                            pitch=-70,
+                                                            pitch=-50,
                                                             roll=0,
                                                             upAxisIndex=2)
         proj_matrix = p.computeProjectionMatrixFOV(fov=60,

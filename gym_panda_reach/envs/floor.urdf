@@ -15,16 +15,16 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-				<box size="8 6 0.01"/>
+				<box size="4 3 0.01"/>
       </geometry>
        <material name="gray">
-        <color rgba="0.3 0.3 0.3 1"/>
+        <color rgba="0.23 0.23 0.23 1"/>
       </material>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-	 	   <box size="8 6 0.01"/>
+	 	   <box size="4 3 0.01"/>
       </geometry>
     </collision>
   </link>
