@@ -24,7 +24,8 @@ class PandaEnv(gym.Env):
         p.connect(p.GUI,options='--background_color_red=0.0 --background_color_green=0.93--background_color_blue=0.54')
         p.resetDebugVisualizerCamera(cameraDistance=1.25, cameraYaw=45, cameraPitch=-20, cameraTargetPosition=[0.55,-0.35,0.15])
         self.action_space = spaces.Box(np.array([-1]*4), np.array([1]*4))
-        self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
+#         self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
+        self.observation_space = spaces.Box(np.array([-1]*24), np.array([1]*24))
         
     def compute_reward(self, achieved_goal, goal):
         # Compute distance between goal and the achieved goal.
@@ -38,7 +39,8 @@ class PandaEnv(gym.Env):
     def step(self, action):
         p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING)
         orientation = p.getQuaternionFromEuler([0.,-math.pi,-math.pi])
-        dv = 0.005
+#         dv = 0.005
+        dv = 0.05
         dx = action[0] * dv
         dy = action[1] * dv
         dz = action[2] * dv
@@ -55,30 +57,57 @@ class PandaEnv(gym.Env):
 
         p.stepSimulation()
 
-        state_object, _ = p.getBasePositionAndOrientation(self.objectUid)
+        state_object, state_object_orienation = p.getBasePositionAndOrientation(self.objectUid)
+        twist_object, twist_object_orienation = p.getBaseVelocity(self.objectUid)
         state_robot = p.getLinkState(self.pandaUid, 11)[0]
         state_fingers = (p.getJointState(self.pandaUid,9)[0], p.getJointState(self.pandaUid, 10)[0])
         
+#         if state_object[2]>0.45:
+#             reward = 1
+#             done = True
+#         else:
+#             reward = 0
+#             done = False
+
+        # Compute reward and completition based: the reward is either dense or sparse
         self.reward_type = "dense"
         self.distance_threshold = 0.05
-        #print(self.compute_reward(state_robot_, state_object_))
-
-        if state_object[2]>0.45:
-            reward = 1
+        d = goal_distance(state_robot, state_object)
+        if d<self.distance_threshold:
+            reward = self.compute_reward(state_robot, state_object)
             done = True
         else:
-            reward = 0
+            reward = self.compute_reward(state_robot, state_object)
             done = False
+
 
         self.step_counter += 1
 
         if self.step_counter > MAX_EPISODE_LEN:
-            reward = 0
+            #reward = 0
             done = True
 
         info = {'object_position': state_object}
-        self.observation = state_robot + state_fingers
-        return np.array(self.observation).astype(np.float32), reward, done, info
+#         self.observation = state_robot + state_fingers
+#         return np.array(self.observation).astype(np.float32), reward, done, info
+        
+        # src -> https://github.com/openai/gym/issues/1503
+        grip_pos = np.array(state_robot)
+        object_pos = np.array(state_object)
+        object_rel_pos = object_pos - grip_pos
+        gripper_state = np.array([0.5*(state_fingers[0]+state_fingers[1])])#this is the gripper q
+        object_rot = np.array(state_object_orienation) # quaternions?
+        object_velp = np.array(twist_object)
+        object_velr = np.array(twist_object_orienation)
+        grip_velp = np.array([dx,dy,dz])#The velocity of gripper moving
+        gripper_vel = np.array([fingers*dv]) #The velocity of gripper opening/closing
+    
+        obs = np.concatenate([
+                    grip_pos.ravel(), object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
+                    object_velp.ravel(), object_velr.ravel(), grip_velp.ravel(), gripper_vel.ravel(),
+                ])
+        #print(np.shape(obs))
+        return obs.copy(), reward, done, info
 
     def reset(self):
         self.step_counter = 0
@@ -104,8 +133,8 @@ class PandaEnv(gym.Env):
 
         #trayUid = p.loadURDF(os.path.join(urdfRootPath, "tray/traybox.urdf"),basePosition=[0.65,0,0])
         
-        p.addUserDebugLine([-1,0,0],[1,0,0],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
-        p.addUserDebugLine([0,-1,0],[0,1,0],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
+        p.addUserDebugLine([-1,0,0.05],[1,0,0.05],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
+        p.addUserDebugLine([0,-1,0.05],[0,1,0.05],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
         p.addUserDebugLine([0,0,-1],[0,0,1],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
 
         state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.0,0.2)]
