@@ -138,14 +138,31 @@ class PandaEnv(gym.Env):
         p.addUserDebugLine([0,-1,0.05],[0,1,0.05],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
         p.addUserDebugLine([0,0,-1],[0,0,1],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
 
-        state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.65+0.0,0.65+0.2)]
+        state_object = [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.65+0.0,0.65+0.2)]
 #         self.objectUid = p.loadURDF(os.path.join(urdfRootPath, "random_urdfs/000/000.urdf"), basePosition=state_object)
         self.objectUid = p.loadURDF(os.path.join(dir_path, "goal.urdf"), basePosition=state_object,useFixedBase=True)
         state_robot = p.getLinkState(self.pandaUid, 11)[0]
         state_fingers = (p.getJointState(self.pandaUid,9)[0], p.getJointState(self.pandaUid, 10)[0])
-        self.observation = state_robot + state_fingers
+        #self.observation = state_robot + state_fingers
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING,1)
-        return np.array(self.observation).astype(np.float32)
+        #return np.array(self.observation).astype(np.float32)
+        
+        # src -> https://github.com/openai/gym/issues/1503
+        grip_pos = np.array(state_robot)
+        object_pos = np.array(state_object)
+        object_rel_pos = object_pos - grip_pos
+        gripper_state = np.array([0.5*(state_fingers[0]+state_fingers[1])])#this is the gripper q
+        object_rot = np.array([0,0,0,1]) # quaternions?
+        object_velp = np.array([0,0,0])
+        object_velr = np.array([0,0,0])
+        grip_velp = np.array([0,0,0])#The velocity of gripper moving
+        gripper_vel = np.array([0]) #The velocity of gripper opening/closing
+    
+        obs = np.concatenate([
+                    grip_pos.ravel(), object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
+                    object_velp.ravel(), object_velr.ravel(), grip_velp.ravel(), gripper_vel.ravel(),
+                ])
+        return obs.copy()
 
     def render(self, mode='human'):
         view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0.7,0,0.65+0.05],
