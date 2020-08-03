@@ -22,7 +22,7 @@ class PandaEnv(gym.Env):
     def __init__(self):
         self.step_counter = 0
         p.connect(p.GUI,options='--background_color_red=0.0 --background_color_green=0.93--background_color_blue=0.54')
-        p.resetDebugVisualizerCamera(cameraDistance=1.25, cameraYaw=45, cameraPitch=-20, cameraTargetPosition=[0.55,-0.35,0.15])
+        p.resetDebugVisualizerCamera(cameraDistance=1.25, cameraYaw=45, cameraPitch=-30, cameraTargetPosition=[0.65,-0.0,0.65])
         self.action_space = spaces.Box(np.array([-1]*4), np.array([1]*4))
 #         self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
         self.observation_space = spaces.Box(np.array([-1]*24), np.array([1]*24))
@@ -118,18 +118,19 @@ class PandaEnv(gym.Env):
 
 #         planeUid = p.loadURDF(os.path.join(urdfRootPath,"plane.urdf"), basePosition=[0,0,-0.65])
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        planeUid = p.loadURDF(os.path.join(dir_path, "floor.urdf"), basePosition=[0,0,-0.65],useFixedBase=True)
+        planeUid = p.loadURDF(os.path.join(dir_path, "floor.urdf"), basePosition=[0.5,0,0],useFixedBase=True)
 
         rest_poses = [0, -0.215, 0, -2.57, 0.0, 2.356, math.pi/4, 0.0, 0.0, 0.0]
 #         rest_poses = [0, 0, 0, 0, 0.0, 0, 0, 0.0, 0.0, 0.0]
-        self.pandaUid = p.loadURDF(os.path.join(urdfRootPath, "franka_panda/panda.urdf"),useFixedBase=True)
+        self.pandaUid = p.loadURDF(os.path.join(urdfRootPath, "franka_panda/panda.urdf"),basePosition=[0,0,0.65],useFixedBase=True)
         
         for i in range(len(rest_poses)):
             p.resetJointState(self.pandaUid,i, rest_poses[i])
-            
+        
+        baseUid = p.loadURDF(os.path.join(dir_path, "base.urdf"),basePosition=[0.0,0.0,0.0],useFixedBase=True)
 #         tableUid = p.loadURDF(os.path.join(urdfRootPath, "table/table.urdf"),basePosition=[0.5,0,-0.65])
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        tableUid = p.loadURDF(os.path.join(dir_path, "flat_table.urdf"),basePosition=[0.5,0,-0.65/2],useFixedBase=True)
+        tableUid = p.loadURDF(os.path.join(dir_path, "flat_table.urdf"),basePosition=[0.65,0,0.0],useFixedBase=True)
 
         #trayUid = p.loadURDF(os.path.join(urdfRootPath, "tray/traybox.urdf"),basePosition=[0.65,0,0])
         
@@ -137,7 +138,7 @@ class PandaEnv(gym.Env):
         p.addUserDebugLine([0,-1,0.05],[0,1,0.05],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
         p.addUserDebugLine([0,0,-1],[0,0,1],[0.9,0.9,0.9],parentObjectUniqueId=self.pandaUid, parentLinkIndex=8)
 
-        state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.0,0.2)]
+        state_object= [random.uniform(0.5,0.8),random.uniform(-0.2,0.2),random.uniform(0.65+0.0,0.65+0.2)]
 #         self.objectUid = p.loadURDF(os.path.join(urdfRootPath, "random_urdfs/000/000.urdf"), basePosition=state_object)
         self.objectUid = p.loadURDF(os.path.join(dir_path, "goal.urdf"), basePosition=state_object,useFixedBase=True)
         state_robot = p.getLinkState(self.pandaUid, 11)[0]
@@ -147,7 +148,7 @@ class PandaEnv(gym.Env):
         return np.array(self.observation).astype(np.float32)
 
     def render(self, mode='human'):
-        view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0.7,0,0.05],
+        view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0.7,0,0.65+0.05],
                                                             distance=.7,
                                                             yaw=90,
                                                             pitch=-50,
