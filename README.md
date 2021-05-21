@@ -1,6 +1,6 @@
 OpenaAI Gym Franka Panda robot environment with PyBullet
 
-Bsed on the awesome tutorial by Mahyar Abdeetedal --> https://www.etedal.net/
+Bsed on the awesome tutorial by  --> 
 
 ## Install
 
@@ -10,9 +10,9 @@ Install with `pip`:
     cd gym-panda-reach
     pip install .
 
-## Basic Usage
+## Basic Usage 
 
-Running an environment:
+Example running of the environment:
 
 ```python
 import gym
@@ -25,3 +25,6 @@ for _ in range(100):
         env.action_space.sample()) # take a random action
 env.close()
 ```
+References and Special Thanks:
+* [Mahyar Abdeetedal](https://github.com/mahyaret) -> awesome [tutorial](https://www.etedal.net/2020/04/pybullet-panda.html) and [inspiration](https://github.com/mahyaret/gym-panda)
+* [OpenAI]() -> original [environment](https://github.com/openai/gym/tree/master/gym/envs/robotics/fetch) 
