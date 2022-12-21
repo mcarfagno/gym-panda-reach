@@ -1,10 +1,13 @@
 OpenaAI Gym robot reaching environment with PyBullet.
 
-This a (sort-of) port of the **fetch_reach_v1** environment featured in this [article](https://openai.com/blog/ingredients-for-robotics-research/) which I wanted to try for my RL experiments but I did not have a [Mujoco](http://mujoco.org).
+This a (sort-of) port of the **fetch_reach_v1** environment featured in this [article](https://openai.com/blog/ingredients-for-robotics-research/) which I wanted to try for my RL experiments but I did not have a [Mujoco](http://mujoco.org) license.
 
 Anyway, here is the env in action, agent was trained with PPO. 
 
-![](img/wow_such_rl.gif)
+| | Agent performance at different training episodes | |
+|:-------------------------:|:-------------------------:|:-------------------------:|
+|<img src="img/5.gif" alt="1" width = 360px height = 360px >|<img src="img/10.gif" alt="1" width = 360px height = 360px >|<img src="img/50.gif" alt="1" width = 360px height = 360px >|
+|<img src="img/200.gif" alt="1" width = 360px height = 360px >|<img src="img/400.gif" alt="1" width = 360px height = 360px >|<img src="img/800.gif" alt="1" width = 360px height = 360px >|
 
 ## Install
 
